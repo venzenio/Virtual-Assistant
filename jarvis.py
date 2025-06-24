@@ -57,23 +57,33 @@ def send_email(to, content):
     except Exception as e:
         speak("Sorry, I am not able to send the email.")
 
-def get_weather():
-    api_key = "your_openweathermap_api_key"
-    city = "Delhi"
-    base_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+import requests
+
+def get_weather_forecast():
+    url = "https://open-weather13.p.rapidapi.com/fivedaysforcast"
+    querystring = {"latitude": "40.730610", "longitude": "-73.935242", "lang": "EN"}
+
+    headers = {
+        "x-rapidapi-host": "open-weather13.p.rapidapi.com",
+        "x-rapidapi-key": "8e75eeaa90msh73bbc51d2b4433cp1d6239jsnfb8850a246de"
+    }
+
     try:
-        response = requests.get(base_url)
+        response = requests.get(url, headers=headers, params=querystring)
         data = response.json()
-        if data["cod"] != "404":
-            main = data["main"]
-            weather = data["weather"][0]
-            temp = main["temp"]
-            desc = weather["description"]
-            speak(f"The temperature in {city} is {temp}°C with {desc}")
+
+        # Display forecast for the next few days
+        if "list" in data:
+            for day in data["list"][:3]:  # Limit to 3 entries for brevity
+                date = day["dt_txt"]
+                temp = day["main"]["temp"]
+                description = day["weather"][0]["description"]
+                print(f"{date}: {temp}°C with {description}")
         else:
-            speak("City not found.")
-    except:
-        speak("Unable to get weather information.")
+            print("No forecast data available.")
+    except Exception as e:
+        print("Error fetching weather data:", e)
+
 
 def open_calculator():
     os.system("calc")
@@ -139,7 +149,9 @@ def execute_command(command):
             speak("I was not able to send the email.")
 
     elif 'weather' in command:
-        get_weather()
+        speak("Fetching the weather forecast for your location.")
+        get_weather_forecast()
+
 
     elif 'open calculator' in command:
         open_calculator()
